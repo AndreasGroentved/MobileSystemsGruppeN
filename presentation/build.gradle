@@ -31,5 +31,4 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     compile 'com.jakewharton:butterknife:8.5.1'
     compile project(path: ':domain')
-    compile project(path: ':data')
 }
