@@ -59,10 +59,11 @@ public class Data implements IData {
                     ObjectMapper mapper = new ObjectMapper();
 
                     try {
+                        callback.setResult(jarray);
                         callback.setResult(mapper.readValue(jarray, new TypeReference<ArrayList<Node>>() {}));
                         System.out.println("Mapped json to object");
                     } catch (IOException e) {
-                        callback.setResult(null);
+                        callback.setResult(e.toString());
                         System.out.println(e);
                     }
                 }
@@ -70,10 +71,15 @@ public class Data implements IData {
                 @Override
                 public void onFailure(int i, Header[] h, Throwable t, JSONObject j) {
                     System.out.println("Failed? " + j+t);
-                    callback.setResult(null);
+                    callback.setResult("Failed? " + j+t);
                 }
             });
-            return (List<Node>)callback.getResult();
+            List<Node> test = new ArrayList<>();
+            Node n = new Node();
+            n.setLocation((String)callback.getResult());
+            test.add(n);
+            return test;
+            //return (List<Node>)callback.getResult();
         }
     }
 
