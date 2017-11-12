@@ -3,7 +3,6 @@ package dk.sdu.gruppen.mobilesystems.gamification;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import dk.sdu.gruppen.domain.test.Tester;
 import dk.sdu.gruppen.mobilesystems.R;
 
 /**
