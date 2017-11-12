@@ -7,13 +7,13 @@ import java.io.Serializable;
 import java.sql.Date;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class data implements Serializable {
+public class RawNode implements Serializable {
 
     @JsonProperty("Location")
     String Location;
 
-    @JsonProperty("Weight")
-    double Weight;
+    @JsonProperty("LocalDateTime")
+    String LocalDateTime;
 
     public String getLocation() {
         return Location;
@@ -23,11 +23,14 @@ public class data implements Serializable {
         Location = location;
     }
 
-    public double getWeight() {
-        return Weight;
+    public String getLocalDateTime() {
+        return LocalDateTime;
     }
 
-    public void setWeight(double weight) {
-        Weight = weight;
+    public void setLocalDateTime(Date localDateTime) {
+        java.text.SimpleDateFormat sdf =
+                new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        LocalDateTime = sdf.format(localDateTime);
     }
 }
