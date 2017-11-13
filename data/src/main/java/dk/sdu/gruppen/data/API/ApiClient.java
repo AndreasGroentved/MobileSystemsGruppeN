@@ -1,34 +1,54 @@
 package dk.sdu.gruppen.data.API;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.loopj.android.http.*;
-
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
-import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.methods.HttpGet;
+import cz.msebera.android.httpclient.client.methods.HttpPost;
+import cz.msebera.android.httpclient.entity.StringEntity;
+import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
+import cz.msebera.android.httpclient.impl.client.HttpClientBuilder;
+import cz.msebera.android.httpclient.util.EntityUtils;
+
+/**
+ * Created by LHRBO on 13-11-2017.
+ */
 
 public class ApiClient {
-    //private static final String BASE_URL = "http://localhost:3000/";
-    private static final String BASE_URL = "http://mobilesystems.azurewebsites.net";
-    private static AsyncHttpClient client = new AsyncHttpClient();
-
-    public static void get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-        client.get(getAbsoluteUrl(url), params, responseHandler);
+    String realm;
+    public ApiClient(String realm){
+        this.realm = realm;
     }
 
-    public static void post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
-        client.post(getAbsoluteUrl(url), params, responseHandler);
+    public String post(String url, String parameters){
+        String json = "no data";
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            HttpPost request = new HttpPost(realm+url);
+            if(!parameters.isEmpty()){
+                StringEntity params = new StringEntity(parameters);
+                request.setEntity(params);
+            }
+            request.addHeader("content-type", "application/json");
+            HttpResponse result = httpClient.execute(request);
+            json = EntityUtils.toString(result.getEntity(), "UTF-8");
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+        return json;
     }
 
-    private static String getAbsoluteUrl(String relativeUrl) {
-        return BASE_URL + relativeUrl;
+    public String get(String url){
+        String json = "no data";
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            HttpGet request = new HttpGet(realm+url);
+            request.addHeader("User-Agent", "Mozilla/5.0");
+            HttpResponse result = httpClient.execute(request);
+            json = EntityUtils.toString(result.getEntity(), "UTF-8");
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+        return json;
     }
-
-
 }

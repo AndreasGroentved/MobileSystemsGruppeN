@@ -4,30 +4,29 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
-import java.sql.Date;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Node implements Serializable {
 
-    @JsonProperty("Location")
-    String Location;
+    @JsonProperty("location")
+    String location;
 
-    @JsonProperty("Weight")
-    double Weight;
+    @JsonProperty("weight")
+    double weight;
 
     public String getLocation() {
-        return Location;
+        return location;
     }
 
     public void setLocation(String location) {
-        Location = location;
+        this.location = location;
     }
 
     public double getWeight() {
-        return Weight;
+        return weight;
     }
 
     public void setWeight(double weight) {
-        Weight = weight;
+        this.weight = weight;
     }
 }

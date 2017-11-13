@@ -4,26 +4,25 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
-import java.sql.Date;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RawNode implements Serializable {
 
-    @JsonProperty("Location")
-    String Location;
+    @JsonProperty("location")
+    String location;
 
-    @JsonProperty("LocalDateTime")
-    String LocalDateTime;
+    /*@JsonProperty("LocalDateTime")
+    String LocalDateTime;*/
 
     public String getLocation() {
-        return Location;
+        return location;
     }
 
     public void setLocation(String location) {
-        Location = location;
+        this.location = location;
     }
 
-    public String getLocalDateTime() {
+   /* public String getLocalDateTime() {
         return LocalDateTime;
     }
 
@@ -32,5 +31,5 @@ public class RawNode implements Serializable {
                 new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         LocalDateTime = sdf.format(localDateTime);
-    }
+    }*/
 }
