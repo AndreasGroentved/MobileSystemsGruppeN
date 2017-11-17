@@ -12,7 +12,7 @@ public class Domain implements IData {
     private static Domain instance = null;
     private Data data = new Data();
 
-    public Domain() {
+    private Domain() {
         // Exists only to defeat instantiation.
     }
 

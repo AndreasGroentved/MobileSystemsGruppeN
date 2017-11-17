@@ -29,6 +29,7 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.1.0-beta3'
     implementation "com.android.support:design:26.1.0"
     compile 'com.android.support.constraint:constraint-layout:1.1.0-beta3'
+    compile 'com.google.android.gms:play-services-location:9.2.0'
 
     compile 'com.google.code.gson:gson:2.8.2'
 

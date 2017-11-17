@@ -22,7 +22,8 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.example)
     TextView example;
-    Domain domain;
+    Domain domain = Domain.getInstance();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,8 +37,6 @@ public class MainActivity extends AppCompatActivity {
             example.setText(s);
         });
 
-        domain = new Domain();
-
         new AsyncTask<Void, Void, List<Node>>() {
             @Override
             protected List<Node> doInBackground(Void... voids) {
@@ -45,7 +44,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
             protected void onPostExecute(List<Node> nodes) {
-                example.setText(nodes.get(0).getLocation());
+                example.setText(nodes.get(0).getLatitude());
+                //Remember to convert Node -> LatLng
             }
         }.execute();
 

@@ -8,25 +8,25 @@ import java.io.Serializable;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Node implements Serializable {
 
-    @JsonProperty("location")
-    String location;
+    @JsonProperty("latitude")
+    String latitude;
 
-    @JsonProperty("weight")
-    double weight;
+    @JsonProperty("longitude")
+    String longitude;
 
-    public String getLocation() {
-        return location;
+    public String getLatitude() {
+        return latitude;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setLatitude(String latitude) {
+        this.latitude = latitude;
     }
 
-    public double getWeight() {
-        return weight;
+    public String getLongitude() {
+        return longitude;
     }
 
-    public void setWeight(double weight) {
-        this.weight = weight;
+    public void setLongitude(String longitude) {
+        this.longitude = longitude;
     }
 }

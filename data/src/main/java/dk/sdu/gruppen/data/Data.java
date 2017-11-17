@@ -16,8 +16,8 @@ import dk.sdu.gruppen.data.Model.RawNode;
 
 public class Data implements IData {
 
-    ApiClient api = new ApiClient("http://192.168.87.26:3000");
-    //ApiClient api = new ApiClient("http://mobilesystems.azurewebsites.net");
+    //ApiClient api = new ApiClient("http://192.168.87.26:3000");
+    ApiClient api = new ApiClient("http://mobilesystems.azurewebsites.net");
 
     @Override
     public List<Node> getGPSToday() {
