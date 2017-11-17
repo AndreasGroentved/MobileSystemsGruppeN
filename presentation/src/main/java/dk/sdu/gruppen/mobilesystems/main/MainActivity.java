@@ -3,11 +3,9 @@ package dk.sdu.gruppen.mobilesystems.main;
 import android.arch.lifecycle.ViewModelProviders;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -36,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
             example.setText(s);
         });
 
-        domain = new Domain();
+        domain = Domain.getInstance();
 
         new AsyncTask<Void, Void, List<Node>>() {
             @Override
@@ -45,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             protected void onPostExecute(List<Node> nodes) {
-                example.setText(nodes.get(0).getLocation());
+                example.setText(nodes.get(0).getLat() + " " + nodes.get(0).getLng());
             }
         }.execute();
 
