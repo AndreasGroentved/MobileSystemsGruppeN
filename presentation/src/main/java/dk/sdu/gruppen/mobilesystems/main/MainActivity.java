@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.example)
     TextView example;
-    Domain domain;
+    Domain domain = Domain.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,8 +33,6 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getExample().observe(this, s -> {
             example.setText(s);
         });
-
-        domain = Domain.getInstance();
 
         new AsyncTask<Void, Void, List<Node>>() {
             @Override

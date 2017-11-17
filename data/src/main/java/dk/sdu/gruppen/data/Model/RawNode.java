@@ -8,26 +8,26 @@ import java.io.Serializable;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RawNode implements Serializable {
 
-    @JsonProperty("latitude")
-    String latitude;
+    @JsonProperty("lat")
+    String lat;
 
-    @JsonProperty("longitude")
-    String longitude;
+    @JsonProperty("lng")
+    String lng;
 
-    public String getLatitude() {
-        return latitude;
+    public String getLat() {
+        return lat;
     }
 
-    public void setLatitude(String latitude) {
-        this.latitude = latitude;
+    public void setLat(String lat) {
+        this.lat = lat;
     }
 
-    public String getLongitude() {
-        return longitude;
+    public String getLng() {
+        return lng;
     }
 
-    public void setLongitude(String longitude) {
-        this.longitude = longitude;
+    public void setLng(String lng) {
+        this.lng = lng;
     }
 
     /*@JsonProperty("LocalDateTime")
