@@ -20,7 +20,6 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import dk.sdu.gruppen.data.Model.Node;
-import dk.sdu.gruppen.domain.Domain;
 import dk.sdu.gruppen.mobilesystems.R;
 import dk.sdu.gruppen.mobilesystems.gamification.GamificationActivity;
 import dk.sdu.gruppen.mobilesystems.map.MapsActivity;
@@ -31,7 +30,6 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.example)
     TextView example;
-    Domain domain = Domain.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         new AsyncTask<Void, Void, List<Node>>() {
             @Override
             protected List<Node> doInBackground(Void... voids) {
-                return domain.getGPSToday();
+                return viewModel.getGpsToday();
             }
 
             protected void onPostExecute(List<Node> nodes) {
@@ -79,14 +77,13 @@ public class MainActivity extends AppCompatActivity {
         Dexter.withActivity(this)
                 .withPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
                 .withListener(new MultiplePermissionsListener() {
-                                  @Override
-                                  public void onPermissionsChecked(MultiplePermissionsReport report) {
-                                  }
+                    @Override
+                    public void onPermissionsChecked(MultiplePermissionsReport report) {
+                    }
 
-                                  @Override
-                                  public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
-                                  }
-                              }
-                ).check();
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                    }
+                }).check();
     }
 }
