@@ -1,13 +1,19 @@
 package dk.sdu.gruppen.mobilesystems.main;
 
+import android.Manifest;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
 import java.util.List;
 
@@ -17,6 +23,7 @@ import dk.sdu.gruppen.data.Model.Node;
 import dk.sdu.gruppen.domain.Domain;
 import dk.sdu.gruppen.mobilesystems.R;
 import dk.sdu.gruppen.mobilesystems.gamification.GamificationActivity;
+import dk.sdu.gruppen.mobilesystems.map.MapsActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,15 +45,16 @@ public class MainActivity extends AppCompatActivity {
             example.setText(s);
         });
 
-        Button startButton= findViewById(R.id.b_start);
+        Button startButton = findViewById(R.id.b_start);
         startButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+            MainActivity.this.startActivity(intent);
 
         });
 
-        Button gameButton= findViewById(R.id.b_game);
-        startButton.setOnClickListener(v -> {
+        Button gameButton = findViewById(R.id.b_game);
+        gameButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, GamificationActivity.class);
-            //intent.putExtra("key", value); //Optional parameters
             MainActivity.this.startActivity(intent);
         });
 
@@ -62,5 +70,23 @@ public class MainActivity extends AppCompatActivity {
             }
         }.execute();
 
+        askPermission();
+    }
+
+    private void askPermission() { //TODO om dette faktisk er tilfældet...
+
+
+        Dexter.withActivity(this)
+                .withPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                .withListener(new MultiplePermissionsListener() {
+                                  @Override
+                                  public void onPermissionsChecked(MultiplePermissionsReport report) {
+                                  }
+
+                                  @Override
+                                  public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                                  }
+                              }
+                ).check();
     }
 }
