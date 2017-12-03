@@ -23,20 +23,26 @@ import dk.sdu.gruppen.domain.Domain;
 public class MapsViewModel extends AndroidViewModel {
 
 
-    public static final int MEAN_FILTER_N = 5;
+    public static final int MEAN_FILTER_N = 10;
     public static final float AT_REST_VALUE = 2.5f; //Til testning med gang, 15 er nok mere passende for biler
     public static final float STATUS_CHANGE = 0.5f;
     private MediatorLiveData<String> averageSpeedMediator;
     private MediatorLiveData<String> statusMediator;
     private MediatorLiveData<String> rawMediator;
-    private MediatorLiveData<List<LatLng>> markerMediator;
+    private MediatorLiveData<List<LatLng>> markerMediator; //Dem fra server
+    private MediatorLiveData<List<LatLng>> routeEndedMediator; //Koordinater til tegning af rute
+    private MediatorLiveData<List<LatLng>> queueMarkers; //Dem fra køretur
+
     private StatusEnum currentStatus = StatusEnum.WAITING;
     private DecimalFormat deci;
     private List<Double> speeds;
     private List<Location> locations;
+    private List<LatLng> queuePoints;
     private Domain domain;
     private LinkedList<Double> rollingAverage;
     private long startTimeForCurrentSection = -1; //Hvornår startede kø/køre sektionen
+    private long lastQueueTime = System.currentTimeMillis(); //Til ændring i hastigheder skal den tid man kigger tilbage, ikke være længere end sidste knudepunkt
+
 
     public MapsViewModel(Application app) {
         super(app);
@@ -44,11 +50,14 @@ public class MapsViewModel extends AndroidViewModel {
         statusMediator = new MediatorLiveData<>();
         markerMediator = new MediatorLiveData<>();
         rawMediator = new MediatorLiveData<>();
+        routeEndedMediator = new MediatorLiveData<>();
+        queueMarkers = new MediatorLiveData<>();
         speeds = new ArrayList<>();
         deci = new DecimalFormat("##.##");
         locations = new ArrayList<>();
         domain = Domain.getInstance();
         rollingAverage = new LinkedList<>();
+        queuePoints = new ArrayList<>();
     }
 
     LiveData<String> getAverageSpeed() {
@@ -66,6 +75,9 @@ public class MapsViewModel extends AndroidViewModel {
         return rawMediator;
     }
 
+    LiveData<List<LatLng>> getQueueMarkers() {
+        return queueMarkers;
+    }
 
     LiveData<List<LatLng>> getMarkers() {
         markerMediator.setValue(new ArrayList<>());
@@ -81,20 +93,34 @@ public class MapsViewModel extends AndroidViewModel {
         return markerMediator;
     }
 
+    LiveData<List<LatLng>> getRouteEnded() {
+        return routeEndedMediator;
+    }
+
+    public void endRoute() {
+        //TODO updater routeEndedMediator med alle køsteder
+        //TODO evt genudregn køpunkter, nu hvor de er snappet til vej
+        List<LatLng> route = snapRoute();
+        routeEndedMediator.postValue(route);
+    }
+
+    private List<LatLng> snapRoute() {
+        //TODO snap til vej -> måske køre mean/median filter på data, for at håndtere outliers, dette er temp
+        return locations.stream().map(location -> new LatLng(location.getLatitude(), location.getLongitude())).collect(Collectors.toList());
+    }
 
     public void updateSpeed(Location loc) {
-        double kmPerHour = 0;
+        double kmPerHour = meterPerSecondToKmPerHour(loc.getSpeed());
 
         //TODO hvis hastighed 0, prøv at udregne hastighed ud fra tid mellem afstand/tid mellem punkter
 
-        kmPerHour = meterPerSecondToKmPerHour(loc.getSpeed());
         locations.add(loc);
 
         double filteredValue = meanFilterOfLastNValuesAndValue(speeds, kmPerHour, MEAN_FILTER_N, speeds.size() - 1);
         speeds.add(kmPerHour);
         averageSpeedMediator.setValue("Speed: " + deci.format(filteredValue) + " km/h");
         rawMediator.setValue("Raw speed: " + deci.format(loc.getSpeed()) + " m/s");
-        evaluateStatus();
+        evaluateStatus(filteredValue, loc);
         //cleanLists();
     }
 
@@ -111,11 +137,14 @@ public class MapsViewModel extends AndroidViewModel {
         return meterPerSecond * 3.6;
     }
 
-    private void evaluateStatus() {
-        if (speeds.get(speeds.size() - 1) < 2.5 /*For test med gang*/) {
+    private void evaluateStatus(double filteredSpeed, Location location) {
+        /*Helt sikkert (i den ideele verden kun med tilnærmelsestvis godt data og ingen tunneller...) knudepunkt */
+        if (filteredSpeed < AT_REST_VALUE/*For test med gang*/) {
             if (currentStatus.equals(StatusEnum.DRIVING)) {
                 currentStatus = StatusEnum.WAITING;
                 statusMediator.setValue(currentStatus.getString());
+                queuePoints.add(new LatLng(location.getLatitude(), location.getLongitude()));
+                queueMarkers.postValue(queuePoints);
             }
         } else {
             if (currentStatus.equals(StatusEnum.WAITING)) {
@@ -123,6 +152,14 @@ public class MapsViewModel extends AndroidViewModel {
                 statusMediator.setValue(currentStatus.getString());
             }
         }
+
+        if (currentStatus.equals(StatusEnum.WAITING)) lastQueueTime = System.currentTimeMillis();
+
+        /*Bremsesektion ud fra ændring i hastighed */
+        /*TODO... måske her, måske efter køreturen, hvor data er snappet til rute
+            for biler ville det måske give mening af match med hastighedsgrænser
+        */
+
     }
 
     public static double meanFilterOfLastNValuesAndValue(List<Double> values, double lastValue, int n, int startingOffset) {
