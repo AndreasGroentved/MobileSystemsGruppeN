@@ -22,14 +22,16 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".gamification.GamificationActivity" />
+        <activity
+            android:name=".gamification.GamificationActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".map.MapsActivity"
-            android:label="@string/title_activity_maps" />
+            android:label="Travelling"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

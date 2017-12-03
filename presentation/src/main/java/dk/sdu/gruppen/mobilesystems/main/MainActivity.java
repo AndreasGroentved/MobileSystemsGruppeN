@@ -3,9 +3,9 @@ package dk.sdu.gruppen.mobilesystems.main;
 import android.Manifest;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -19,7 +19,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import dk.sdu.gruppen.data.Model.Node;
 import dk.sdu.gruppen.mobilesystems.R;
 import dk.sdu.gruppen.mobilesystems.gamification.GamificationActivity;
 import dk.sdu.gruppen.mobilesystems.map.MapsActivity;
@@ -31,6 +30,10 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.example)
     TextView example;
 
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
 
         viewModel.getExample().observe(this, s -> {
-            example.setText(s);
+           // example.setText(s);
         });
 
         Button startButton = findViewById(R.id.b_start);
@@ -56,19 +59,14 @@ public class MainActivity extends AppCompatActivity {
             MainActivity.this.startActivity(intent);
         });
 
-
-        new AsyncTask<Void, Void, List<Node>>() {
-            @Override
-            protected List<Node> doInBackground(Void... voids) {
-                return viewModel.getGpsToday();
-            }
-
-            protected void onPostExecute(List<Node> nodes) {
-                example.setText(nodes.get(0).getLat() + " " + nodes.get(0).getLng());
-            }
-        }.execute();
-
         askPermission();
+        setUpToolbar();
+    }
+
+    private void setUpToolbar() {
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
     private void askPermission() { //TODO om dette faktisk er tilfældet...

@@ -1,5 +1,6 @@
 package dk.sdu.gruppen.domain;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import dk.sdu.gruppen.data.Data;
@@ -23,7 +24,23 @@ public class Domain implements IData {
 
     @Override
     public List<Node> getGPSToday() {
+
         return data.getGPSToday();
+    }
+
+    public List<Node> getMockAroundUni() {
+        List<Node> nodes = new ArrayList<>();
+        Node nodeA = new Node("55.366985", "10.430832");
+        Node nodeB = new Node("55.365114", "10.431547");
+        Node nodeC = new Node("55.366773", "10.431129");
+        Node nodeD = new Node("55.364139", "10.439590");
+        Node nodeE = new Node("55.365688", "10.445148");
+        nodes.add(nodeA);
+        nodes.add(nodeB);
+        nodes.add(nodeC);
+        nodes.add(nodeD);
+        nodes.add(nodeE);
+        return nodes;
     }
 
     @Override
@@ -33,6 +50,6 @@ public class Domain implements IData {
 
     @Override
     public String postGPS(List<RawNode> rawNodes) {
-        return null;
+        return data.postGPS(rawNodes);
     }
 }

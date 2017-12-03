@@ -39,6 +39,8 @@ public class Data implements IData {
 
     @Override
     public String postGPS(List<RawNode> rawNodes) {
-        return null;
+
+
+        return "Sup?";
     }
 }

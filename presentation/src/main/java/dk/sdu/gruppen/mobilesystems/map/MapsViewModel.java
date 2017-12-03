@@ -9,6 +9,7 @@ import android.location.Location;
 import android.os.AsyncTask;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.model.SnappedPoint;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 
 import dk.sdu.gruppen.data.Model.Node;
 import dk.sdu.gruppen.domain.Domain;
+import timber.log.Timber;
 
 
 public class MapsViewModel extends AndroidViewModel {
@@ -84,7 +86,8 @@ public class MapsViewModel extends AndroidViewModel {
         AsyncTask.execute(() -> {
 
             //TODO få data fra server
-            List<Node> nodes = domain.getGPSToday();
+            //List<Node> nodes = domain.getGPSToday();
+            List<Node> nodes = domain.getMockAroundUni();
             List<LatLng> latLngs = nodes.stream().map(node -> {
                 return new LatLng(Double.parseDouble(node.getLat()), Double.parseDouble(node.getLng()));
             }).collect(Collectors.toList());
@@ -97,16 +100,29 @@ public class MapsViewModel extends AndroidViewModel {
         return routeEndedMediator;
     }
 
-    public void endRoute() {
+    public void endRoute(MapsHelper mapsHelper) {
         //TODO updater routeEndedMediator med alle køsteder
         //TODO evt genudregn køpunkter, nu hvor de er snappet til vej
-        List<LatLng> route = snapRoute();
+
+        List<LatLng> route = snapRoute(mapsHelper);
         routeEndedMediator.postValue(route);
     }
 
-    private List<LatLng> snapRoute() {
+    private List<LatLng> snapRoute(MapsHelper mapsHelper) {
         //TODO snap til vej -> måske køre mean/median filter på data, for at håndtere outliers, dette er temp
-        return locations.stream().map(location -> new LatLng(location.getLatitude(), location.getLongitude())).collect(Collectors.toList());
+        if(locations.isEmpty()) return new ArrayList<>();
+        List<LatLng> points = locations.stream().map(l -> {
+            return new LatLng(l.getLatitude(), l.getLongitude());
+        }).collect(Collectors.toList());
+        Timber.i("points " + points.size());
+
+        List<SnappedPoint> snappedPoints = mapsHelper.snapToRoad(points);
+        List<LatLng> snappedPointsLatLng = snappedPoints.stream().map(a -> {
+            return new LatLng(a.location.lat, a.location.lng);
+        }).collect(Collectors.toList());
+        Timber.i("snapped points " + snappedPoints.size());
+
+        return snappedPointsLatLng;
     }
 
     public void updateSpeed(Location loc) {

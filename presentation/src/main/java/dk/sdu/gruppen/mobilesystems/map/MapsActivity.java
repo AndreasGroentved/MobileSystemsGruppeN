@@ -11,7 +11,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
@@ -33,12 +34,17 @@ import butterknife.ButterKnife;
 import dk.sdu.gruppen.mobilesystems.R;
 import timber.log.Timber;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private MapsViewModel viewModel;
 
     private GoogleMap map;
     private LocationManager locationManager;
+    private MapsHelper mapsHelper;
+
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
+
 
     @BindView(R.id.speed)
     TextView speedView;
@@ -62,15 +68,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         viewModel = ViewModelProviders.of(this).get(MapsViewModel.class);
         ButterKnife.bind(this);
 
+        mapsHelper = new MapsHelper(this);
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         setViewModelBindings();
         setClickListeners();
+        setUpToolbar();
+
     }
 
+    private void setUpToolbar() {
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+    }
+
+
     private void setClickListeners() {
-        endButton.setOnClickListener(view -> {
-            viewModel.endRoute();
-        });
+        endButton.setOnClickListener(view -> viewModel.endRoute(mapsHelper));
     }
 
     private void setViewModelBindings() {
@@ -86,11 +100,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void drawRoute(List<LatLng> latLngs) {
+        if (latLngs.isEmpty()) return;
         PolylineOptions polyLine = new PolylineOptions().width(3).color(Color.GREEN);
 
         for (int i = 0; i < latLngs.size(); i++) {
             polyLine.add(latLngs.get(i));
         }
+
         map.addPolyline(polyLine);
     }
 
@@ -99,6 +115,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // map.clear();
         markers.forEach(latLng -> {
             //TODO håndter vægte
+            //TODO find ud af standardformat for ikoner
             map.addMarker((new MarkerOptions().position(latLng)).icon(bitmapDescriptor));
         });
     }
@@ -123,7 +140,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         public void onLocationChanged(Location location) {
             LOG("location lat " + location.getLatitude() + " long " + location.getLongitude() + " , speed" + location.getSpeed());
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 20f));
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 18f)); //TODO håndter zoom, så brugeren også kan zoome ind og ud, uden det bliver overskrevet her
             viewModel.updateSpeed(location);
         }
 
