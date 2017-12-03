@@ -97,11 +97,10 @@ public class MapsViewModel extends AndroidViewModel {
         return routeEndedMediator;
     }
 
-    public void endRoute() {
+    public void endRoute(List<LatLng> points) {
         //TODO updater routeEndedMediator med alle køsteder
         //TODO evt genudregn køpunkter, nu hvor de er snappet til vej
-        List<LatLng> route = snapRoute();
-        routeEndedMediator.postValue(route);
+        routeEndedMediator.postValue(points);
     }
 
     private List<LatLng> snapRoute() {

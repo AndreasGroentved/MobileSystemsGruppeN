@@ -25,20 +25,23 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.model.SnappedPoint;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import dk.sdu.gruppen.mobilesystems.R;
 import timber.log.Timber;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationUpdatesDelegate {
 
     private MapsViewModel viewModel;
 
     private GoogleMap map;
-    private LocationManager locationManager;
+    private LocationLogger locationLogger;
+    private MapsHelper mapsHelper;
 
     @BindView(R.id.speed)
     TextView speedView;
@@ -55,21 +58,38 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_maps);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
         viewModel = ViewModelProviders.of(this).get(MapsViewModel.class);
         ButterKnife.bind(this);
 
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        locationLogger = new LocationLogger(this, this);
+        mapsHelper = new MapsHelper(this);
+
         setViewModelBindings();
         setClickListeners();
     }
 
     private void setClickListeners() {
         endButton.setOnClickListener(view -> {
-            viewModel.endRoute();
+            locationLogger.stopLogging();
+            List<Location> locations = locationLogger.extractLocationData();
+
+            List<LatLng> points = locations.stream().map(l -> {
+               return new LatLng(l.getLatitude(), l.getLongitude());
+            }).collect(Collectors.toList());
+
+            List<SnappedPoint> snappedPoints = mapsHelper.snapToRoad(points);
+            List<LatLng> snappedPointsLatLng = snappedPoints.stream().map(a -> {
+                return new LatLng(a.location.lat, a.location.lng);
+            }).collect(Collectors.toList());
+
+            drawRoute(snappedPointsLatLng);
+//            viewModel.endRoute(snappedPointsLatLng);
         });
     }
 
@@ -86,12 +106,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void drawRoute(List<LatLng> latLngs) {
-        PolylineOptions polyLine = new PolylineOptions().width(3).color(Color.GREEN);
-
-        for (int i = 0; i < latLngs.size(); i++) {
-            polyLine.add(latLngs.get(i));
-        }
-        map.addPolyline(polyLine);
+        mapsHelper.drawLine(map, latLngs, Color.GREEN);
     }
 
     //TODO kun den nyeste tilføjes i stedet for, at der kommer duplikater
@@ -107,41 +122,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.i("return", "return");
-            return;
-        }
         viewModel.getMarkers().observe(this, markers -> {
             drawMarkers(markers, BitmapDescriptorFactory.fromResource(R.drawable.angry_icon));
         });
-        Criteria criteria = new Criteria();
-        String provider = locationManager.getBestProvider(criteria, false);
-        locationManager.requestLocationUpdates(provider, 0L, 0f, locationListener);
+
+        locationLogger.startLogging();
     }
 
-    private LocationListener locationListener = new LocationListener() {
-        @Override
-        public void onLocationChanged(Location location) {
-            LOG("location lat " + location.getLatitude() + " long " + location.getLongitude() + " , speed" + location.getSpeed());
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 20f));
-            viewModel.updateSpeed(location);
-        }
-
-        @Override
-        public void onStatusChanged(String s, int i, Bundle bundle) {
-            LOG("status changed " + s);
-        }
-
-        @Override
-        public void onProviderEnabled(String s) {
-            LOG("provider enabled");
-        }
-
-        @Override
-        public void onProviderDisabled(String s) {
-            LOG("provider disabled " + s);
-        }
-    };
+    @Override
+    public void locationUpdated(Location location) {
+        // TODO: virker ikke som om at den updatere hver gang location gør.
+        LOG("location lat " + location.getLatitude() + " long " + location.getLongitude() + " , speed" + location.getSpeed());
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 20f));
+        map.moveCamera(CameraUpdateFactory.zoomTo(20));
+        viewModel.updateSpeed(location);
+    }
 
     public void LOG(String log) {
         Timber.d(log);
