@@ -3,15 +3,12 @@ package dk.sdu.gruppen.data;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import dk.sdu.gruppen.data.API.ApiClient;
-import dk.sdu.gruppen.data.Model.Node;
+import dk.sdu.gruppen.data.Model.GeoNode;
 import dk.sdu.gruppen.data.Model.RawNode;
 
 public class Data implements IData {
@@ -20,12 +17,12 @@ public class Data implements IData {
     ApiClient api = new ApiClient("http://mobilesystems.azurewebsites.net");
 
     @Override
-    public List<Node> getGPSToday() {
-        List<Node> nodes = new ArrayList<>();
+    public List<GeoNode> getGPSToday() {
+        List<GeoNode> nodes = new ArrayList<>();
         String response = api.get("/gpsToday");
         try {
             ObjectMapper mapper = new ObjectMapper();
-            nodes = mapper.readValue(response, new TypeReference<ArrayList<Node>>() {});
+            nodes = mapper.readValue(response, new TypeReference<ArrayList<GeoNode>>() {});
         }catch (IOException e) {
             System.out.println(e);
         }
@@ -33,14 +30,32 @@ public class Data implements IData {
     }
 
     @Override
-    public List<Node> getGPSRange(String parameters) {
+    public List<GeoNode> getGPSAll() {
+        List<GeoNode> nodes = new ArrayList<>();
+        String response = api.get("/gpsAll");
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            nodes = mapper.readValue(response, new TypeReference<ArrayList<GeoNode>>() {});
+        }catch (IOException e) {
+            System.out.println(e);
+        }
+        return nodes;
+    }
+
+    @Override
+    public List<GeoNode> getGPSRange(String parameters) {
         return null;
     }
 
     @Override
     public String postGPS(List<RawNode> rawNodes) {
-
-
-        return "Sup?";
+        String jnodes = "";
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            jnodes = mapper.writeValueAsString(rawNodes);
+        }catch (IOException e) {
+            System.out.println(e);
+        }
+        return api.post("/gpsPost", jnodes);
     }
 }

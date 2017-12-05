@@ -8,7 +8,7 @@ import android.arch.lifecycle.MediatorLiveData;
 
 import java.util.List;
 
-import dk.sdu.gruppen.data.Model.Node;
+import dk.sdu.gruppen.data.Model.GeoNode;
 import dk.sdu.gruppen.domain.Domain;
 
 
@@ -19,7 +19,7 @@ public class MainViewModel extends AndroidViewModel {
     private MediatorLiveData<String> exampleLiveData;
 
 
-    public List<Node> getGpsToday() {
+    public List<GeoNode> getGpsToday() {
         return domain.getGPSToday();
     }
 

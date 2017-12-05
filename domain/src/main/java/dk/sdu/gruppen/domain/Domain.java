@@ -5,7 +5,7 @@ import java.util.List;
 
 import dk.sdu.gruppen.data.Data;
 import dk.sdu.gruppen.data.IData;
-import dk.sdu.gruppen.data.Model.Node;
+import dk.sdu.gruppen.data.Model.GeoNode;
 import dk.sdu.gruppen.data.Model.RawNode;
 
 public class Domain implements IData {
@@ -23,18 +23,22 @@ public class Domain implements IData {
     }
 
     @Override
-    public List<Node> getGPSToday() {
-
+    public List<GeoNode> getGPSToday() {
         return data.getGPSToday();
     }
 
-    public List<Node> getMockAroundUni() {
-        List<Node> nodes = new ArrayList<>();
-        Node nodeA = new Node("55.366985", "10.430832");
-        Node nodeB = new Node("55.365114", "10.431547");
-        Node nodeC = new Node("55.366773", "10.431129");
-        Node nodeD = new Node("55.364139", "10.439590");
-        Node nodeE = new Node("55.365688", "10.445148");
+    @Override
+    public List<GeoNode> getGPSAll() {
+        return data.getGPSAll();
+    }
+
+    public List<GeoNode> getMockAroundUni() {
+        List<GeoNode> nodes = new ArrayList<>();
+        GeoNode nodeA = new GeoNode("55.366985", "10.430832");
+        GeoNode nodeB = new GeoNode("55.365114", "10.431547");
+        GeoNode nodeC = new GeoNode("55.366773", "10.431129");
+        GeoNode nodeD = new GeoNode("55.364139", "10.439590");
+        GeoNode nodeE = new GeoNode("55.365688", "10.445148");
         nodes.add(nodeA);
         nodes.add(nodeB);
         nodes.add(nodeC);
@@ -44,7 +48,7 @@ public class Domain implements IData {
     }
 
     @Override
-    public List<Node> getGPSRange(String parameters) {
+    public List<GeoNode> getGPSRange(String parameters) {
         return null;
     }
 

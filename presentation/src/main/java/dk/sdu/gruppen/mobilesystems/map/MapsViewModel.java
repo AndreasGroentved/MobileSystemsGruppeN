@@ -17,7 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import dk.sdu.gruppen.data.Model.Node;
+import dk.sdu.gruppen.data.Model.GeoNode;
 import dk.sdu.gruppen.domain.Domain;
 import timber.log.Timber;
 
@@ -85,9 +85,8 @@ public class MapsViewModel extends AndroidViewModel {
         markerMediator.setValue(new ArrayList<>());
         AsyncTask.execute(() -> {
 
-            //TODO få data fra server
-            //List<Node> nodes = domain.getGPSToday();
-            List<Node> nodes = domain.getMockAroundUni();
+            List<GeoNode> nodes = domain.getGPSAll();
+            //List<GeoNode> nodes = domain.getMockAroundUni();
             List<LatLng> latLngs = nodes.stream().map(node -> {
                 return new LatLng(Double.parseDouble(node.getLat()), Double.parseDouble(node.getLng()));
             }).collect(Collectors.toList());
