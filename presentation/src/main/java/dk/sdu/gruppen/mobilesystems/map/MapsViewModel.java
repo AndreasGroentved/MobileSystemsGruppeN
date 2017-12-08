@@ -44,7 +44,7 @@ public class MapsViewModel extends AndroidViewModel {
     private LinkedList<Double> rollingAverage;
     private long startTimeForCurrentSection = -1; //Hvornår startede kø/køre sektionen
     private long lastQueueTime = System.currentTimeMillis(); //Til ændring i hastigheder skal den tid man kigger tilbage, ikke være længere end sidste knudepunkt
-
+    private Location lastLocation;
 
     public MapsViewModel(Application app) {
         super(app);
@@ -110,7 +110,8 @@ public class MapsViewModel extends AndroidViewModel {
 
     private List<LatLng> snapRoute(MapsHelper mapsHelper) {
         //TODO snap til vej -> måske køre mean/median filter på data, for at håndtere outliers, dette er temp
-        if(locations.isEmpty()) return new ArrayList<>();
+        Timber.i("locations " + locations);
+        if (locations.isEmpty()) return new ArrayList<>();
         List<LatLng> points = locations.stream().map(l -> {
             return new LatLng(l.getLatitude(), l.getLongitude());
         }).collect(Collectors.toList());
@@ -125,10 +126,18 @@ public class MapsViewModel extends AndroidViewModel {
         return snappedPointsLatLng;
     }
 
+    float[] results = new float[1];
+
     public void updateSpeed(Location loc) {
+        if (lastLocation != null) {
+            Location.distanceBetween(lastLocation.getLatitude(), lastLocation.getLongitude(), loc.getLatitude(), loc.getLongitude(), results);
+            loc.setSpeed(results[0] / ((loc.getTime() - lastLocation.getTime()) / 1000));
+        }
+
         double kmPerHour = meterPerSecondToKmPerHour(loc.getSpeed());
 
         //TODO hvis hastighed 0, prøv at udregne hastighed ud fra tid mellem afstand/tid mellem punkter
+
 
         locations.add(loc);
 
@@ -138,6 +147,9 @@ public class MapsViewModel extends AndroidViewModel {
         rawMediator.setValue("Raw speed: " + deci.format(loc.getSpeed()) + " m/s");
         evaluateStatus(filteredValue, loc);
         //cleanLists();
+        routeEndedMediator.postValue(locations.stream().map(location -> new LatLng(location.getLatitude(), location.getLongitude())).collect(Collectors.toList()));
+
+        lastLocation = loc;
     }
 
     private void cleanLists() { //TODO find ud af, om det giver mening at gemme al data, og lave analyse efter tur - i forhold til hukommelse
@@ -188,5 +200,26 @@ public class MapsViewModel extends AndroidViewModel {
             sum += values.get(index);
         }
         return (sum * 1f) / n;
+    }
+
+    private double distance(double lat1, double lon1, double lat2, double lon2) {
+        double theta = lon1 - lon2;
+        double dist = Math.sin(deg2rad(lat1))
+                * Math.sin(deg2rad(lat2))
+                + Math.cos(deg2rad(lat1))
+                * Math.cos(deg2rad(lat2))
+                * Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60 * 1.1515;
+        return (dist);
+    }
+
+    private double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+    }
+
+    private double rad2deg(double rad) {
+        return (rad * 180.0 / Math.PI);
     }
 }

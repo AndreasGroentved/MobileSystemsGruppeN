@@ -84,7 +84,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     private void setClickListeners() {
-        endButton.setOnClickListener(view -> viewModel.endRoute(mapsHelper));
+        endButton.setOnClickListener(view -> {
+            Timber.i("end");
+            viewModel.endRoute(mapsHelper);
+        });
     }
 
     private void setViewModelBindings() {
@@ -100,8 +103,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void drawRoute(List<LatLng> latLngs) {
+        Timber.i("draw route, size " + latLngs.size());
         if (latLngs.isEmpty()) return;
-        PolylineOptions polyLine = new PolylineOptions().width(3).color(Color.GREEN);
+        PolylineOptions polyLine = new PolylineOptions().width(5).color(Color.GREEN);
 
         for (int i = 0; i < latLngs.size(); i++) {
             polyLine.add(latLngs.get(i));
