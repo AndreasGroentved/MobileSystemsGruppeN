@@ -2,7 +2,7 @@ package dk.sdu.gruppen.data;
 
 import java.util.List;
 
-import dk.sdu.gruppen.data.Model.Node;
+import dk.sdu.gruppen.data.Model.GeoNode;
 import dk.sdu.gruppen.data.Model.RawNode;
 
 /**
@@ -10,9 +10,11 @@ import dk.sdu.gruppen.data.Model.RawNode;
  */
 
 public interface IData {
-    public List<Node> getGPSToday();
+    public List<GeoNode> getGPSToday();
 
-    public List<Node> getGPSRange(String parameters);
+    public List<GeoNode> getGPSAll();
+
+    public List<GeoNode> getGPSRange(String parameters);
 
     public String postGPS(List<RawNode> rawNodes);
 }

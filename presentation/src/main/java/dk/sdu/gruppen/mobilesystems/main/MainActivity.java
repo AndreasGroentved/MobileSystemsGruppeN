@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
 
         viewModel.getExample().observe(this, s -> {
-           // example.setText(s);
+            // example.setText(s);
         });
 
         Button startButton = findViewById(R.id.b_start);
@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
         askPermission();
         setUpToolbar();
+
     }
 
     private void setUpToolbar() {

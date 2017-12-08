@@ -6,23 +6,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Node implements Serializable {
+public class GeoNode implements Serializable {
 
-    @JsonProperty("lat")
+    @JsonProperty("centerLat")
     String lat;
 
-    @JsonProperty("lng")
+    @JsonProperty("centerLng")
     String lng;
 
     @JsonProperty("weight")
     double weight;
 
-    public Node() {
+    public GeoNode() {
 
     }
 
 
-    public Node(String lat, String lng) {
+    public GeoNode(String lat, String lng) {
         this.lat = lat;
         this.lng = lng;
     }
