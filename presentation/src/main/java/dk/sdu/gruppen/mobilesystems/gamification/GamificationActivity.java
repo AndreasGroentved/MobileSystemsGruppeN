@@ -1,10 +1,14 @@
 package dk.sdu.gruppen.mobilesystems.gamification;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -15,6 +19,7 @@ public class GamificationActivity extends AppCompatActivity {
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
+    TextView score;
 
 
     @Override
@@ -23,7 +28,8 @@ public class GamificationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_game);
         ButterKnife.bind(this);
         setUpToolbar();
-
+        score = (TextView) findViewById(R.id.points);
+        getPoints();
     }
 
     private void setUpToolbar() {
@@ -33,7 +39,8 @@ public class GamificationActivity extends AppCompatActivity {
     }
 
     private void getPoints() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String points = preferences.getString("points", "DEFAULT");
+        SharedPreferences prefs = this.getSharedPreferences("dk.sdu.gruppen.mobilesystems", Context.MODE_PRIVATE);
+        int points = prefs.getInt("points", 0);
+        score.setText(String.valueOf(points));
     }
 }

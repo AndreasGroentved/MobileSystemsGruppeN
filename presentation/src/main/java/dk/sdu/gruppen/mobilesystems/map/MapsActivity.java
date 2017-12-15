@@ -3,6 +3,7 @@ package dk.sdu.gruppen.mobilesystems.map;
 import android.Manifest;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Criteria;
@@ -10,6 +11,8 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -58,6 +61,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @BindView(R.id.end_button)
     Button endButton;
 
+    SharedPreferences preferences;
+    SharedPreferences.Editor editor;
+
+
+    Handler timerHandler = new Handler();
+    Runnable timerRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+            //TODO: add some checks to make sure user is actually driving
+            addPoints(10);
+            timerHandler.postDelayed(this, 10000);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,6 +92,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setClickListeners();
         setUpToolbar();
 
+        preferences = this.getSharedPreferences("dk.sdu.gruppen.mobilesystems", Context.MODE_PRIVATE);
+        editor = preferences.edit();
+        timerHandler.postDelayed(timerRunnable, 10000);
+    }
+
+    private void addPoints(int points){
+        editor.putInt("points", points);
+        editor.apply();
     }
 
     private void setUpToolbar() {
