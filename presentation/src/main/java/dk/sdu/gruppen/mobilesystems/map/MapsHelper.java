@@ -1,15 +1,12 @@
 package dk.sdu.gruppen.mobilesystems.map;
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.GeoApiContext;
 import com.google.maps.RoadsApi;
 import com.google.maps.errors.ApiException;
@@ -25,10 +22,8 @@ import java.util.stream.Collectors;
  */
 
 public class MapsHelper {
-    private Activity activity;
     private String apiKey;
     private GeoApiContext geoApiContext;
-
     private final static String TAG = "MapsHelper";
 
     private final static double LAT_DEGREE_IN_METERS = 111111;
@@ -37,11 +32,9 @@ public class MapsHelper {
     private final static double LONG_METER_IN_DEGREES = 1 / LONG_DEGREE_IN_METERS;
 
 
-    public MapsHelper(Activity activity) {
-        this.activity = activity;
-
+    public MapsHelper(Context context) {
         try { //TODO gør i aktivitet
-            ApplicationInfo applicationInfo = activity.getPackageManager().getApplicationInfo(activity.getPackageName(), PackageManager.GET_META_DATA);
+            ApplicationInfo applicationInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
             Bundle bundle = applicationInfo.metaData;
             apiKey = bundle.getString("com.google.android.geo.API_KEY");
         } catch (Exception e) {
@@ -73,7 +66,7 @@ public class MapsHelper {
 
             SnappedPoint[] points = new SnappedPoint[0];
             try {
-                points = RoadsApi.snapToRoads(geoApiContext, true, page).await();
+                points = RoadsApi.snapToRoads(geoApiContext, true, page).await(); //TODO asynk, e.g. med callback
             } catch (ApiException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
@@ -101,10 +94,4 @@ public class MapsHelper {
         return snappedPoints;
     }
 
-    public Polyline drawLine(GoogleMap map, List<LatLng> points, int color) {
-        PolylineOptions options = new PolylineOptions().addAll(points).color(color);
-        Polyline line = map.addPolyline(options);
-
-        return line;
-    }
 }

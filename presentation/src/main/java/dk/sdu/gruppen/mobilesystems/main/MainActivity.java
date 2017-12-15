@@ -42,10 +42,6 @@ public class MainActivity extends AppCompatActivity {
 
         viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
 
-        viewModel.getExample().observe(this, s -> {
-            // example.setText(s);
-        });
-
         Button startButton = findViewById(R.id.b_start);
         startButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, MapsActivity.class);
@@ -66,13 +62,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void setUpToolbar() {
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        /*getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);*/
     }
 
-    private void askPermission() { //TODO om dette faktisk er tilfældet...
-
-
+    private void askPermission() {
         Dexter.withActivity(this)
                 .withPermissions(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
                 .withListener(new MultiplePermissionsListener() {

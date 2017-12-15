@@ -25,7 +25,7 @@ import timber.log.Timber;
 public class MapsViewModel extends AndroidViewModel {
 
 
-    public static final int MEAN_FILTER_N = 10;
+    public static final int MEAN_FILTER_N = 5;
     public static final float AT_REST_VALUE = 2.5f; //Til testning med gang, 15 er nok mere passende for biler
     public static final float STATUS_CHANGE = 0.5f;
     private MediatorLiveData<String> averageSpeedMediator;
@@ -108,13 +108,10 @@ public class MapsViewModel extends AndroidViewModel {
     }
 
     private List<LatLng> snapRoute(MapsHelper mapsHelper) {
-        //TODO snap til vej -> måske køre mean/median filter på data, for at håndtere outliers, dette er temp
-        Timber.i("locations " + locations);
         if (locations.isEmpty()) return new ArrayList<>();
         List<LatLng> points = locations.stream().map(l -> {
             return new LatLng(l.getLatitude(), l.getLongitude());
         }).collect(Collectors.toList());
-        Timber.i("points " + points.size());
 
         List<SnappedPoint> snappedPoints = mapsHelper.snapToRoad(points);
         List<LatLng> snappedPointsLatLng = snappedPoints.stream().map(a -> {
@@ -201,24 +198,5 @@ public class MapsViewModel extends AndroidViewModel {
         return (sum * 1f) / n;
     }
 
-    private double distance(double lat1, double lon1, double lat2, double lon2) {
-        double theta = lon1 - lon2;
-        double dist = Math.sin(deg2rad(lat1))
-                * Math.sin(deg2rad(lat2))
-                + Math.cos(deg2rad(lat1))
-                * Math.cos(deg2rad(lat2))
-                * Math.cos(deg2rad(theta));
-        dist = Math.acos(dist);
-        dist = rad2deg(dist);
-        dist = dist * 60 * 1.1515;
-        return (dist);
-    }
 
-    private double deg2rad(double deg) {
-        return (deg * Math.PI / 180.0);
-    }
-
-    private double rad2deg(double rad) {
-        return (rad * 180.0 / Math.PI);
-    }
 }

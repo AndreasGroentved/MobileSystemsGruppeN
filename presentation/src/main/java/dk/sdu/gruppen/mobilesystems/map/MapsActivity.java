@@ -62,8 +62,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         viewModel = ViewModelProviders.of(this).get(MapsViewModel.class);
         ButterKnife.bind(this);
@@ -94,16 +93,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         viewModel.getAverageSpeed().observe(this, s -> speedView.setText(s));
         viewModel.getStatus().observe(this, s -> statusView.setText(s));
         viewModel.getRaw().observe(this, s -> rawView.setText(s)); //TODO raw er en debug ting -> fjernes senere
-
         viewModel.getRouteEnded().observe(this, this::drawRoute);
-
         viewModel.getQueueMarkers().observe(this, latLngs -> {
             drawMarkers(latLngs, BitmapDescriptorFactory.fromResource(R.drawable.waiting_icon));
         });
     }
 
     private void drawRoute(List<LatLng> latLngs) {
-        Timber.i("draw route, size " + latLngs.size());
         if (latLngs.isEmpty()) return;
         PolylineOptions polyLine = new PolylineOptions().width(5).color(Color.GREEN);
 
@@ -132,6 +128,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.i("return", "return");
             return;
         }
+
         viewModel.getMarkers().observe(this, markers -> {
             drawMarkers(markers, BitmapDescriptorFactory.fromResource(R.drawable.angry_icon));
         });
