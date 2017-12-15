@@ -77,18 +77,17 @@
         app:layout_constraintTop_toTopOf="@+id/guideline11" />
 
     <TextView
-        android:id="@+id/rawView"
+        android:id="@+id/lengthView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:text="Raw: 0m/s"
+        android:text="Time: 0/s"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/guideline01"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline" />
-
 
     <Button
         android:id="@+id/end_button"
