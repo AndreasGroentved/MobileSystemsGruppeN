@@ -1,18 +1,26 @@
 package dk.sdu.gruppen.data.Model;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 
+@Entity(primaryKeys = {"lat","lng"})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RawNode implements Serializable {
 
+
     @JsonProperty("lat")
-    String lat;
+    @NonNull
+    public String lat = "";
 
     @JsonProperty("lng")
-    String lng;
+    @NonNull
+    public String lng = "";
 
     public String getLat() {
         return lat;
@@ -27,6 +35,14 @@ public class RawNode implements Serializable {
     }
 
     public void setLng(String lng) {
+        this.lng = lng;
+    }
+
+    public RawNode(){
+    }
+
+    public RawNode(String lat, String lng) {
+        this.lat = lat;
         this.lng = lng;
     }
 

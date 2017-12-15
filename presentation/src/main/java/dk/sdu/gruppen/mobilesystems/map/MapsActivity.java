@@ -1,16 +1,11 @@
 package dk.sdu.gruppen.mobilesystems.map;
 
-import android.Manifest;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Context;
-import android.content.pm.PackageManager;
+import android.content.ComponentName;
 import android.graphics.Color;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -23,6 +18,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -34,27 +30,26 @@ import butterknife.ButterKnife;
 import dk.sdu.gruppen.mobilesystems.R;
 import timber.log.Timber;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraChangeListener {
 
+
+    public static final float DEFAULT_ZOOM_LEVEL = 18f;
     private MapsViewModel viewModel;
 
     private GoogleMap map;
-    private LocationManager locationManager;
+    private float zoomLevel = DEFAULT_ZOOM_LEVEL;
     private MapsHelper mapsHelper;
+    private LocationLogger locationLogger;
+    private boolean isMapReady = false;
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
-
-
     @BindView(R.id.speed)
     TextView speedView;
-
     @BindView(R.id.status)
     TextView statusView;
-
-    @BindView(R.id.rawView)
-    TextView rawView;
-
+    @BindView(R.id.lengthView)
+    TextView timeView;
     @BindView(R.id.end_button)
     Button endButton;
 
@@ -68,7 +63,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         ButterKnife.bind(this);
 
         mapsHelper = new MapsHelper(this);
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        locationLogger = new LocationLogger(this, viewModel.getLocationSubject());
+        locationLogger.startLogging();
         setViewModelBindings();
         setClickListeners();
         setUpToolbar();
@@ -81,25 +77,44 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
+    private void scheduleUpload() {
+        ComponentName serviceComponent = new ComponentName(this, UploadJob.class);
+        JobInfo.Builder builder = new JobInfo.Builder(0, serviceComponent);
+        builder.setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY);
+        JobScheduler jobScheduler = getSystemService(JobScheduler.class);
+        assert jobScheduler != null;
+        jobScheduler.schedule(builder.build());
+    }
+
 
     private void setClickListeners() {
         endButton.setOnClickListener(view -> {
             Timber.i("end");
             viewModel.endRoute(mapsHelper);
+            scheduleUpload();
         });
     }
 
     private void setViewModelBindings() {
         viewModel.getAverageSpeed().observe(this, s -> speedView.setText(s));
         viewModel.getStatus().observe(this, s -> statusView.setText(s));
-        viewModel.getRaw().observe(this, s -> rawView.setText(s)); //TODO raw er en debug ting -> fjernes senere
+        viewModel.getTime().observe(this, s -> timeView.setText(s));
         viewModel.getRouteEnded().observe(this, this::drawRoute);
         viewModel.getQueueMarkers().observe(this, latLngs -> {
             drawMarkers(latLngs, BitmapDescriptorFactory.fromResource(R.drawable.waiting_icon));
         });
+
+        viewModel.getCurrentLocation().observe(this, location -> {
+            if (location == null || !isMapReady) return;
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), zoomLevel));
+        });
+
     }
 
     private void drawRoute(List<LatLng> latLngs) {
+        if (!isMapReady) return;
+        LOG("draw route, size " + latLngs.size());
+        Timber.i("draw route, size " + latLngs.size());
         if (latLngs.isEmpty()) return;
         PolylineOptions polyLine = new PolylineOptions().width(5).color(Color.GREEN);
 
@@ -112,7 +127,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     //TODO kun den nyeste tilføjes i stedet for, at der kommer duplikater
     private void drawMarkers(List<LatLng> markers, BitmapDescriptor bitmapDescriptor) {
-        // map.clear();
+        if (!isMapReady) return;
         markers.forEach(latLng -> {
             //TODO håndter vægte
             //TODO find ud af standardformat for ikoner
@@ -123,47 +138,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.i("return", "return");
-            return;
-        }
+        isMapReady = true;
 
         viewModel.getMarkers().observe(this, markers -> {
             drawMarkers(markers, BitmapDescriptorFactory.fromResource(R.drawable.angry_icon));
         });
-        Criteria criteria = new Criteria();
-        String provider = locationManager.getBestProvider(criteria, false);
-        locationManager.requestLocationUpdates(provider, 0L, 0f, locationListener);
+
+
     }
 
-    private LocationListener locationListener = new LocationListener() {
-        @Override
-        public void onLocationChanged(Location location) {
-            LOG("location lat " + location.getLatitude() + " long " + location.getLongitude() + " , speed" + location.getSpeed());
-            map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 18f)); //TODO håndter zoom, så brugeren også kan zoome ind og ud, uden det bliver overskrevet her
-            viewModel.updateSpeed(location);
-        }
-
-        @Override
-        public void onStatusChanged(String s, int i, Bundle bundle) {
-            LOG("status changed " + s);
-        }
-
-        @Override
-        public void onProviderEnabled(String s) {
-            LOG("provider enabled");
-        }
-
-        @Override
-        public void onProviderDisabled(String s) {
-            LOG("provider disabled " + s);
-        }
-    };
-
-    public void LOG(String log) {
+    public static void LOG(String log) {
         Timber.d(log);
         Log.d("LOGLOG", log);
+    }
+
+    @Override
+    public void onCameraChange(CameraPosition cameraPosition) {
+        zoomLevel = cameraPosition.zoom;
     }
 }
 

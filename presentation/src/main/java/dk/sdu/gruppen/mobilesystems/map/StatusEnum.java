@@ -6,7 +6,8 @@ package dk.sdu.gruppen.mobilesystems.map;
 
 public enum StatusEnum {
     WAITING,
-    DRIVING;
+    DRIVING,
+    QUEUEING;
 
     public String getString() {
         switch (this) {
@@ -14,6 +15,8 @@ public enum StatusEnum {
                 return "waiting";
             case DRIVING:
                 return "driving";
+            case QUEUEING:
+                return "queuing";
         }
         return "ERROR";
     }

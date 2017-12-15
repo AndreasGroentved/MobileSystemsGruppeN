@@ -1,5 +1,7 @@
 package dk.sdu.gruppen.domain;
 
+import android.content.Context;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,14 +13,14 @@ import dk.sdu.gruppen.data.Model.RawNode;
 public class Domain implements IData {
 
     private static Domain instance = null;
-    private Data data = new Data();
+    private Data data;
 
-    private Domain() {
-        // Exists only to defeat instantiation.
+    private Domain(Context context) {
+        data = new Data(context);
     }
 
-    public static Domain getInstance() {
-        if (instance == null) instance = new Domain();
+    public static Domain getInstance(Context context) {
+        if (instance == null) instance = new Domain(context);
         return instance;
     }
 
@@ -55,5 +57,18 @@ public class Domain implements IData {
     @Override
     public String postGPS(List<RawNode> rawNodes) {
         return data.postGPS(rawNodes);
+    }
+
+    public List<RawNode> getAllNodes() {
+        return data.getAllNodes();
+    }
+
+
+    public void insertRawNodes(RawNode[] rawnodes) {
+        data.insertRawNodes(rawnodes);
+    }
+
+    public void clearDb() {
+        data.clearDb();
     }
 }
