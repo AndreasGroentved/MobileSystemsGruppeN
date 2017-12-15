@@ -30,6 +30,9 @@ import butterknife.ButterKnife;
 import dk.sdu.gruppen.mobilesystems.R;
 import timber.log.Timber;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraChangeListener {
 
 
