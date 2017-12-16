@@ -38,8 +38,12 @@ public class GamificationActivity extends AppCompatActivity {
         try {
             points = getPoints();
         }catch(Exception e){
-            //Shhhh
+            //Shhhh just eat it silently
         }
+
+        //points = 198;
+
+        score.setText(String.valueOf(points));
 
         if(points > 50){
             achiev50.setVisibility(View.VISIBLE);
@@ -60,7 +64,6 @@ public class GamificationActivity extends AppCompatActivity {
     private int getPoints() {
         SharedPreferences prefs = this.getSharedPreferences("dk.sdu.gruppen.mobilesystems", Context.MODE_PRIVATE);
         int points = prefs.getInt("points", 0);
-        score.setText(String.valueOf(points));
         return points;
     }
 }
