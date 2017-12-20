@@ -13,7 +13,6 @@ import com.google.maps.model.SnappedPoint;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -24,11 +23,9 @@ import dk.sdu.gruppen.domain.Domain;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
-import timber.log.Timber;
 
 
 public class MapsViewModel extends AndroidViewModel {
-
 
     public static final int MEAN_FILTER_N = 5;
     public static final float AT_REST_VALUE = 2.5f; //Til testning med gang, 15 er nok mere passende for biler
@@ -53,8 +50,6 @@ public class MapsViewModel extends AndroidViewModel {
     private List<LatLng> queuePoints;
     private List<LatLng> breakPoints;
     private Domain domain;
-    private LinkedList<Double> rollingAverage;
-    private long startTimeForCurrentSection = -1; //Hvornår startede kø/køre sektionen
     private long lastQueueTime = System.currentTimeMillis(); //Til ændring i hastigheder skal den tid man kigger tilbage, ikke være længere end sidste knudepunkt
 
     private Location lastLocation;
@@ -72,20 +67,20 @@ public class MapsViewModel extends AndroidViewModel {
         deci = new DecimalFormat("##.##");
         locations = new ArrayList<>();
         domain = Domain.getInstance(app);
-        rollingAverage = new LinkedList<>();
         queuePoints = new ArrayList<>();
         breakPoints = new ArrayList<>();
         locationSubject = PublishSubject.create();
-        locationSubject.subscribe(a -> MapsActivity.LOG("WHAT HAT"));
-        locationSubject.subscribeOn(Schedulers.computation()).buffer(1000, TimeUnit.MILLISECONDS).subscribe(locations -> {
-            MapsActivity.LOG("sub");
-            if (locations.isEmpty()) return;
-            List<Location> output = locations.get(0);
-            for (int i = 1; i < locations.size(); i++) {
-                output.addAll(locations.get(i));
-            }
-            updateSpeed(output);
-        });
+        locationSubject
+                .subscribeOn(Schedulers.computation())
+                .buffer(1000, TimeUnit.MILLISECONDS)
+                .subscribe(locations -> {
+                    if (locations.isEmpty()) return;
+                    List<Location> output = locations.get(0);
+                    for (int i = 1; i < locations.size(); i++) {
+                        output.addAll(locations.get(i));
+                    }
+                    updateSpeed(output);
+                });
     }
 
     PublishSubject<List<Location>> getLocationSubject() {
@@ -125,7 +120,6 @@ public class MapsViewModel extends AndroidViewModel {
         markerMediator.postValue(new ArrayList<>());
         AsyncTask.execute(() -> {
             List<GeoNode> nodes = domain.getGPSAll();
-            //List<GeoNode> nodes = domain.getMockAroundUni();
             List<LatLng> latLngs = nodes.stream().map(node -> {
                 return new LatLng(Double.parseDouble(node.getLat()), Double.parseDouble(node.getLng()));
             }).collect(Collectors.toList());
@@ -139,9 +133,7 @@ public class MapsViewModel extends AndroidViewModel {
     }
 
     public void endRoute(MapsHelper mapsHelper) {
-        //TODO updater routeEndedMediator med alle køsteder
         //TODO evt genudregn køpunkter, nu hvor de er snappet til vej
-
         List<LatLng> route = snapRoute(mapsHelper);
         routeEndedMediator.postValue(route);
     }
@@ -156,12 +148,9 @@ public class MapsViewModel extends AndroidViewModel {
         List<LatLng> snappedPointsLatLng = snappedPoints.stream().map(a -> {
             return new LatLng(a.location.lat, a.location.lng);
         }).collect(Collectors.toList());
-        Timber.i("snapped points " + snappedPoints.size());
 
         return snappedPointsLatLng;
     }
-
-    private float[] results = new float[1];
 
     public void updateSpeed(List<Location> loc) {
         if (loc.isEmpty()) return;
@@ -186,7 +175,6 @@ public class MapsViewModel extends AndroidViewModel {
         averageSpeedMediator.postValue("Speed: " + deci.format(filteredValue) + " km/h");
         evaluateStatus(filteredValue, lastLocation);
 
-
         if (previousLast != null) loc.add(0, previousLast);
 
         routeEndedMediator.postValue(loc.stream().map(location -> new LatLng(location.getLatitude(), location.getLongitude())).collect(Collectors.toList()));
@@ -210,7 +198,7 @@ public class MapsViewModel extends AndroidViewModel {
 
     private void evaluateStatus(double filteredSpeed, Location location) {
         /*Helt sikkert (i den ideele verden kun med tilnærmelsestvis godt data og ingen tunneller...) knudepunkt */
-        if (filteredSpeed < AT_REST_VALUE/*For test med gang*/) {
+        if (filteredSpeed < AT_REST_VALUE) {
             if (currentStatus.equals(StatusEnum.DRIVING)) {
                 MapsActivity.LOG("CHANGE");
                 currentStatus = StatusEnum.WAITING;
@@ -230,24 +218,16 @@ public class MapsViewModel extends AndroidViewModel {
         if (currentStatus.equals(StatusEnum.WAITING)) lastQueueTime = System.currentTimeMillis();
         else {
             if (!currentStatus.equals(StatusEnum.QUEUEING)) {
-                if (speedChangeLargerThanQueueMaxChange(filteredSpeed) && queueTimeMoreThanMin()) {
+                if (speedChangeLargerThanQueueMaxChange(filteredSpeed) && queueTimeMoreThanMin()) { //TODO giv min speed
                     currentStatus = StatusEnum.QUEUEING;
                     statusMediator.postValue(currentStatus.getString());
                     queuePoints.add(new LatLng(location.getLatitude(), location.getLongitude()));
                     queueMarkers.postValue(queuePoints);
                     lastQueueTime = System.currentTimeMillis();
                     saveToDB();
-                    MapsActivity.LOG("QUEUEING:::::::::::::::::::::::::::::::::::::::::::");
                 }
             }
         }
-
-
-        /*Bremsesektion ud fra ændring i hastighed */
-        /*TODO... måske her, måske efter køreturen, hvor data er snappet til rute
-            for biler ville det måske give mening af match med hastighedsgrænser
-        */
-
     }
 
     private boolean queueTimeMoreThanMin() {
@@ -270,6 +250,7 @@ public class MapsViewModel extends AndroidViewModel {
             sum += values.get(index);
             numberOfValues++;
         }
+        MapsActivity.LOG("Filtered values " + numberOfValues);
         return (sum * 1f) / numberOfValues;
     }
 
@@ -284,5 +265,6 @@ public class MapsViewModel extends AndroidViewModel {
         return congestionPoints;
     }
 
+    //TODO fjerning af start position + positioner tæt på hinanden
 
 }

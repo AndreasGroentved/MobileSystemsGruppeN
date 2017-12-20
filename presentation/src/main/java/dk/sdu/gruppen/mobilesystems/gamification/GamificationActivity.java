@@ -1,16 +1,13 @@
 package dk.sdu.gruppen.mobilesystems.gamification;
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -19,10 +16,20 @@ import dk.sdu.gruppen.mobilesystems.R;
 
 public class GamificationActivity extends AppCompatActivity {
 
+    private GamificationViewModel viewModel;
+
     @BindView(R.id.toolbar)
     Toolbar toolbar;
+
+    @BindView(R.id.points)
     TextView score;
 
+    @BindView(R.id.Uachiev_1)
+    ImageView achiev50;
+    @BindView(R.id.Uachiev_2)
+    ImageView achiev100;
+    @BindView(R.id.Uachiev_3)
+    ImageView achiev200;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,29 +37,25 @@ public class GamificationActivity extends AppCompatActivity {
         setContentView(R.layout.activity_game);
         ButterKnife.bind(this);
         setUpToolbar();
-        score = (TextView) findViewById(R.id.points);
-        ImageView achiev50= (ImageView) findViewById(R.id.Uachiev_1);
-        ImageView achiev100= (ImageView) findViewById(R.id.Uachiev_2);
-        ImageView achiev200= (ImageView) findViewById(R.id.Uachiev_3);
-        int points = 0;
-        try {
-            points = getPoints();
-        }catch(Exception e){
-            //Shhhh just eat it silently
-        }
+        viewModel = ViewModelProviders.of(this).get(GamificationViewModel.class);
 
-        //points = 198;
+        viewModel.getPointsLiveData().observe(this, (points) -> {
+            if (points == null) return;
+            score.setText(String.valueOf(points));
+            setAchievements(points);
+        });
+    }
 
-        score.setText(String.valueOf(points));
-
-        if(points > 50){
+    private void setAchievements(int points) {
+        if (points > 50) {
             achiev50.setVisibility(View.VISIBLE);
-        }if(points > 100){
+        }
+        if (points > 100) {
             achiev100.setVisibility(View.VISIBLE);
-        }if(points > 200){
+        }
+        if (points > 200) {
             achiev200.setVisibility(View.VISIBLE);
         }
-
     }
 
     private void setUpToolbar() {
@@ -61,9 +64,15 @@ public class GamificationActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
-    private int getPoints() {
-        SharedPreferences prefs = this.getSharedPreferences("dk.sdu.gruppen.mobilesystems", Context.MODE_PRIVATE);
-        int points = prefs.getInt("points", 0);
-        return points;
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
+
+
 }

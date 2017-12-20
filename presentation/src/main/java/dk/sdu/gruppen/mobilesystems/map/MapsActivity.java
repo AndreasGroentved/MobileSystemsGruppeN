@@ -4,12 +4,15 @@ import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -30,9 +33,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import dk.sdu.gruppen.mobilesystems.R;
 import timber.log.Timber;
-
-import android.content.Context;
-import android.content.SharedPreferences;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnCameraChangeListener {
 
@@ -88,13 +88,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setClickListeners();
         setUpToolbar();
 
-        preferences = this.getSharedPreferences("dk.sdu.gruppen.mobilesystems", Context.MODE_PRIVATE);
+        preferences = getSharedPreferences("dk.sdu.gruppen.mobilesystems", Context.MODE_PRIVATE);
         editor = preferences.edit();
         timerHandler.postDelayed(timerRunnable, 10000);
     }
 
-    private void addPoints(int points){
-        editor.putInt("points", points);
+    private void addPoints(int points) {
+        int oldPoints = preferences.getInt("points", 0);
+        editor.putInt("points", oldPoints + points);
         editor.apply();
     }
 
@@ -138,10 +139,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    private void drawRoute(List<LatLng> latLngs) {
+    private void drawRoute(List<LatLng> latLngs) { //TODO i viewModel
         if (!isMapReady) return;
-        LOG("draw route, size " + latLngs.size());
-        Timber.i("draw route, size " + latLngs.size());
         if (latLngs.isEmpty()) return;
         PolylineOptions polyLine = new PolylineOptions().width(5).color(Color.GREEN);
 
@@ -170,8 +169,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         viewModel.getMarkers().observe(this, markers -> {
             drawMarkers(markers, BitmapDescriptorFactory.fromResource(R.drawable.angry_icon));
         });
-
-
     }
 
     public static void LOG(String log) {
@@ -182,6 +179,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
         zoomLevel = cameraPosition.zoom;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
 

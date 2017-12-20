@@ -34,8 +34,7 @@ public class LocationLogger {
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
 
-    private final
-    int REQUEST_CHECK_SETTINGS = 1;
+    private final int REQUEST_CHECK_SETTINGS = 1;
 
     /**
      * Initializes a new instance of the Logger object with an established
@@ -79,7 +78,6 @@ public class LocationLogger {
                     break;
             }
         });
-
 
         locationCallback = new LocationCallback() {
             @Override
